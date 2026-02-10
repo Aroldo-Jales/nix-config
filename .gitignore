@@ -1,0 +1,53 @@
+# =========================
+# Machine-specific files
+# =========================
+
+# Host-specific hardware configuration
+hosts/*/hardware-configuration.nix
+
+
+# =========================
+# Local variables / private data
+# =========================
+
+# User-specific variables (username, email, local paths)
+home/vars.nix
+
+
+# =========================
+# Nix build artifacts
+# =========================
+
+# Nix build results
+result
+result-*
+
+
+# =========================
+# Temporary / cache files
+# =========================
+
+.tmp/
+.cache/
+
+
+# =========================
+# Editor / OS files
+# =========================
+
+# VS Code
+.vscode/
+
+# Vim
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+
+# =========================
+# Logs
+# =========================
+
+*.log
