@@ -1,6 +1,9 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, vars, ... }:
 
 {
+  imports = [
+    ./modules/github-ssh.nix
+  ];
 
   home.username = "aroldoljs";
   home.homeDirectory = "/home/aroldoljs";

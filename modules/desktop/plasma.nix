@@ -6,6 +6,14 @@
 
   services.desktopManager.plasma6.enable = true;
 
+  programs.kdeconnect.enable = true;
+
+  /* ALLOWED PORTS FOR LOCALSEND */
+  networking.firewall = {
+    allowedTCPPorts = [ 53317 ];
+    allowedUDPPorts = [ 53317 ];
+  };
+
   environment.systemPackages = with pkgs; [
     kdePackages.kaccounts-integration
     kdePackages.kaccounts-providers

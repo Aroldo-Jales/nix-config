@@ -4,7 +4,7 @@
   users.users.${vars.username} = {
     isNormalUser = true;
     description = vars.fullName;
-    extraGroups = [ "wheel" "networkmanager" ];
+    extraGroups = [ "wheel" "networkmanager" "docker" "vboxusers"];
     
     linger = true;
   };

@@ -13,6 +13,8 @@
     docker-compose
   ];
 
+  networking.firewall.allowedTCPPorts = [ 9443 9000 ];
+
   virtualisation.oci-containers = {
     backend = "docker";
     containers.portainer = {
@@ -27,10 +29,6 @@
       volumes = [
         "portainer_data:/data"
         "/var/run/docker.sock:/var/run/docker.sock"
-      ];
-
-      cmd = [
-        "--admin-password"
       ];
     };
   };

@@ -24,6 +24,14 @@
   
   services.tailscale.enable = true;
 
+  virtualisation.virtualbox.host = {
+    enable = true;
+    enableHardening = true;
+    addNetworkInterface = true;
+  };
+
+  users.groups.vboxusers = {};
+
   home-manager.backupFileExtension = "hm-bak";
 
   programs.nix-ld.enable = true;
