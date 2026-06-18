@@ -1,8 +1,8 @@
-{ ... }:
+{ vars, pkgs, ... }:
 
 {
   imports = [
-    ./hardware-configuration.nix
+    /etc/nixos/hardware-configuration.nix
 
     ../../modules/boot/systemd-boot.nix
     ../../modules/system/nix.nix
@@ -11,13 +11,35 @@
     ../../modules/networking/networkmanager.nix
     ../../modules/desktop/plasma.nix
     ../../modules/services/audio.nix
-    ../../modules/services/podman.nix
+    /*../../modules/services/podman.nix*/
+    ../../modules/services/docker.nix
     ../../modules/services/ssh.nix
     ../../modules/packages.nix
     ../../modules/users/user.nix
     ../../modules/cloud/rclone-keepass.nix
   ];
 
-  networking.hostName = "aroldo-laptop";
-  system.stateVersion = "24.05";
+  networking.hostName = "${vars.username}-laptop";
+  system.stateVersion = "24.11";
+  
+  services.tailscale.enable = true;
+
+  home-manager.backupFileExtension = "hm-bak";
+
+  programs.nix-ld.enable = true;
+
+  programs.nix-ld.libraries = with pkgs; [
+    stdenv.cc.cc
+    zlib
+    openssl
+    icu
+  ];
+
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+  hardware.enableRedistributableFirmware = true;
+
+  environment.sessionVariables = {
+    PATH = "$HOME/.cargo/bin:$PATH";
+  };
 }

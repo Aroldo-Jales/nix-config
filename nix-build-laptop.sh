@@ -1,15 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Repository root
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$REPO_ROOT"
 
+# Target host
 HOST="laptop"
+
+# Hardware paths
 TARGET_DIR="hosts/${HOST}"
 TARGET_HW="${TARGET_DIR}/hardware-configuration.nix"
 
-SRC_ETC="/etc/nixos/hardware-configuration.nix"
-SRC_ETC_HOST="/etc/nixos/hosts/${HOST}/hardware-configuration.nix"
+# Vars init script
+INIT_VARS_SCRIPT="${REPO_ROOT}/initiate-vars.sh"
+
+
+# -------------------------
+# Vars check
+# -------------------------
+
+ensure_vars() {
+  if [[ ! -x "$INIT_VARS_SCRIPT" ]]; then
+    echo "ERROR: initiate-vars.sh not found or not executable:"
+    echo "  $INIT_VARS_SCRIPT"
+    echo
+    echo "Run:"
+    echo "  chmod +x initiate-vars.sh"
+    exit 1
+  fi
+
+  echo "==> Checking vars.nix..."
+  "$INIT_VARS_SCRIPT"
+}
+
+
+# -------------------------
+# Hardware check (generate locally)
+# -------------------------
 
 ensure_hw_config() {
   if [[ -f "$TARGET_HW" ]]; then
@@ -18,66 +46,79 @@ ensure_hw_config() {
   fi
 
   echo "WARN: ${TARGET_HW} not found."
-  echo "==> Try copy from /etc/nixos..."
+  echo "==> Generating hardware-configuration.nix into ${TARGET_HW}..."
 
   mkdir -p "$TARGET_DIR"
 
-  if [[ -f "$SRC_ETC" ]]; then
-    sudo cp -v "$SRC_ETC" "$TARGET_HW"
-  elif [[ -f "$SRC_ETC_HOST" ]]; then
-    sudo cp -v "$SRC_ETC_HOST" "$TARGET_HW"
-  else
-    echo "ERRO: hardware-configuration.nix not found:"
-    echo "  - $SRC_ETC"
-    echo "  - $SRC_ETC_HOST"
-    echo
-    echo "Generate with: sudo nixos-generate-config"
-    return 1
-  fi
+  # Generate ONLY hardware config (does not touch configuration.nix)
+  sudo nixos-generate-config --show-hardware-config > "$TARGET_HW"
 
+  # Ensure file is owned by the current user (repo file), readable by all
   sudo chown "$(id -u):$(id -g)" "$TARGET_HW"
   chmod 644 "$TARGET_HW"
-  echo "OK: copiado para ${TARGET_HW}."
+
+  echo "OK: generated ${TARGET_HW}."
 }
 
-do_switch() {
+
+# -------------------------
+# Prerequisites
+# -------------------------
+
+ensure_prereqs() {
+  ensure_vars
   ensure_hw_config
-  echo "==> nixos-rebuild switch --flake .#${HOST}"
-  sudo nixos-rebuild switch --flake ".#${HOST}"
+}
+
+
+# -------------------------
+# Actions
+# -------------------------
+
+do_switch() {
+  ensure_prereqs
+  echo "==> nixos-rebuild switch --flake ${REPO_ROOT}#${HOST} --impure"
+  sudo nixos-rebuild switch --flake "${REPO_ROOT}#${HOST}" --impure
 }
 
 do_boot() {
-  ensure_hw_config
-  echo "==> nixos-rebuild boot --flake .#${HOST}"
-  sudo nixos-rebuild boot --flake ".#${HOST}"
+  ensure_prereqs
+  echo "==> nixos-rebuild boot --flake ${REPO_ROOT}#${HOST} --impure"
+  sudo nixos-rebuild boot --flake "${REPO_ROOT}#${HOST}" --impure
 }
 
 do_build() {
-  ensure_hw_config
-  echo "==> nixos-rebuild build --flake .#${HOST}"
-  sudo nixos-rebuild build --flake ".#${HOST}"
+  ensure_prereqs
+  echo "==> nixos-rebuild build --flake ${REPO_ROOT}#${HOST} --impure"
+  sudo nixos-rebuild build --flake "${REPO_ROOT}#${HOST}" --impure
 }
 
 do_update_and_switch() {
-  ensure_hw_config
+  ensure_prereqs
+
   echo "==> nix flake update"
   nix flake update
-  echo "==> nixos-rebuild switch --flake .#${HOST}"
-  sudo nixos-rebuild switch --flake ".#${HOST}"
+
+  echo "==> nixos-rebuild switch --flake ${REPO_ROOT}#${HOST} --impure"
+  sudo nixos-rebuild switch --flake "${REPO_ROOT}#${HOST}" --impure
 }
+
+
+# -------------------------
+# UI
+# -------------------------
 
 show_paths() {
   echo "Repo:         $REPO_ROOT"
   echo "Host:         $HOST"
   echo "Target HW:    $TARGET_HW"
-  echo "Src HW 1:     $SRC_ETC"
-  echo "Src HW 2:     $SRC_ETC_HOST"
+  echo "Vars script:  $INIT_VARS_SCRIPT"
 }
 
 menu() {
   echo
   echo "========== nix-build (${HOST}) =========="
-  echo "1) Check/copy hardware-configuration.nix (if missing)"
+  echo "1) Check/generate hardware-configuration.nix (if missing)"
   echo "2) nixos-rebuild SWITCH"
   echo "3) nixos-rebuild BOOT"
   echo "4) nixos-rebuild BUILD"
@@ -88,13 +129,18 @@ menu() {
   printf "Choose: "
 }
 
+
+# -------------------------
+# Main loop
+# -------------------------
+
 while true; do
   menu
   read -r choice
 
   case "$choice" in
     1)
-      ensure_hw_config
+      ensure_prereqs
       ;;
     2)
       do_switch

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   nixpkgs.config.allowUnfree = true;
@@ -12,7 +12,9 @@
     libreoffice
     zotero
     obs-studio
+    joplin-desktop
     flatpak
+    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.twilight
 
     # Dev
     vscode
@@ -22,13 +24,17 @@
     git
     cargo
     python3
+    dotnet-sdk_9
     python3Packages.pip
     python3Packages.virtualenv
-    
+    libsecret
+
     # Utils
     gcc
     curl
     wget
+    dcmtk
+    tailscale
     ripgrep
     fd
     fzf
@@ -37,9 +43,14 @@
     htop
     starship
     openssh
-    openssl        
+    openssl
     pkg-config
-    gnumake 
-    perl    
+    gnumake
+    perl
+
+    usbutils   # lsusb
+    pciutils   # lspci
+    bluez      # bluetoothctl
+    blueman    # ui optional
   ];
 }

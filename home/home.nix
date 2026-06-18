@@ -1,51 +1,166 @@
-{ inputs, pkgs, vars, ... }:
+{ config, pkgs, lib, ... }:
 
 {
-  imports = [
-    ./modules/github-ssh.nix
-    inputs.zen-browser.homeModules.twilight
-  ];
 
-  programs.zen-browser.enable = true;
+  home.username = "aroldoljs";
+  home.homeDirectory = "/home/aroldoljs";
 
-  home.username = vars.username;
-  home.homeDirectory = "/home/${vars.username}";
-  home.stateVersion = "24.05";
+  home.stateVersion = "24.11";
 
-  programs.git = {
-    enable = true;
-    settings.user = {
-      name = vars.fullName;
-      email = vars.email;
+  home.packages = with pkgs; [
+    openssh
+    starship
+  ];  
+
+  systemd.user.services.ssh-agent = {
+    Unit = {
+      Description = "SSH agent";
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+
+      # Socket fixo
+      Environment = [
+        "SSH_AUTH_SOCK=%t/ssh-agent.socket"
+      ];
+
+      ExecStart = "ssh-agent -D -a %t/ssh-agent.socket";
+      Restart = "on-failure";
+    };
+
+    Install = {
+      WantedBy = [ "default.target" ];
     };
   };
 
-  home.sessionVariables.DOCKER_HOST = vars.podmanSocket;
+  home.sessionVariables = {
+    SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/ssh-agent.socket";
+  };
 
   programs.bash = {
     enable = true;
-    sessionVariables.DOCKER_HOST = vars.podmanSocket;
-
+    
     shellAliases = {
-      c2p = "code2prompt . -c";
-      ghkey = "ghkey";
-      ghkey-rotate = "ghkey-rotate";
-
-      # Portable: run nix-build-laptop.sh from the current git repository root
-      nix-lap-build = ''
-        bash -lc 'repo="$(git rev-parse --show-toplevel 2>/dev/null || true)"; \
-        if [ -z "$repo" ]; then echo "Not inside a git repository."; exit 1; fi; \
-        exec "$repo/nix-build-laptop.sh"'
-      '';
+      c2p = "code2prompt . --clipboard";
     };
+
+    initExtra = ''
+      eval "$(starship init bash)"
+    '';
   };
 
-  programs.bash.initExtra = ''
-    export PATH="$HOME/.cargo/bin:$PATH"
-  '';
+  /*
+  programs.starship = {
+    enable = true;
 
-  programs.starship.enable = true;
-  programs.vscode.enable = true;
+    settings = {
+      add_newline = true;
 
-  home.packages = with pkgs; [ starship ];
+      format = "$directory$git_branch$git_status$container\n$character";
+
+      container = {
+        disabled = false;
+        format = "📦 [$name]($style) ";
+        style = "bold blue";
+      };
+
+      directory = {
+        format = "[$path]($style) ";
+        style = "bold cyan";
+        truncation_length = 3;
+        truncation_symbol = "…/";
+      };
+
+      git_branch = {
+        format = "🌿 [$branch]($style) ";
+        style = "bold purple";
+      };
+
+      git_status = {
+        format = "[$all_status$ahead_behind]($style) ";
+        style = "bold yellow";
+      };
+
+      character = {
+        success_symbol = "[>](bold green) ";
+        error_symbol = "[>](bold red) ";
+      };
+    };
+  };*/
+
+  programs.starship = {
+  enable = true;
+
+  settings = {
+    "$schema" = "https://starship.rs/config-schema.json";
+
+    format = "[░▒▓](#a3aed2)[ ♞ ♜ ](bg:#a3aed2 fg:#090c0c)[](bg:#769ff0 fg:#a3aed2)$directory[](fg:#769ff0 bg:#394260)$git_branch$git_status[](fg:#394260 bg:#212736)$nodejs$rust$golang$php[](fg:#212736   bg:#1d2230)$time[ ](fg:#1d2230)\n$character";
+
+    directory = {
+      style = "fg:#e3e5e5 bg:#769ff0";
+      format = "[ $path ]($style)";
+      truncation_length = 3;
+      truncation_symbol = "…/";
+      substitutions = {
+        "Documents" = " 󰈙 ";
+        "Downloads" = "  ";
+        "Music" = "  ";
+        "Pictures" = "  ";
+      };
+    };
+
+    git_branch = {
+      symbol = "";
+      style = "bg:#394260";
+      format = "[[ $symbol $branch ](fg:#769ff0 bg:#394260)]($style)";
+    };
+
+    git_status = {
+      style = "bg:#394260";
+      format = "[[($all_status$ahead_behind )](fg:#769ff0 bg:#394260)]($style)";
+    };
+
+    nodejs = {
+      symbol = "";
+      style = "bg:#212736";
+      format = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)";
+    };
+
+    rust = {
+      symbol = "";
+      style = "bg:#212736";
+      format = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)";
+    };
+
+    golang = {
+      symbol = "";
+      style = "bg:#212736";
+      format = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)";
+    };
+
+    php = {
+      symbol = "";
+      style = "bg:#212736";
+      format = "[[ $symbol ($version) ](fg:#769ff0 bg:#212736)]($style)";
+    };
+
+    time = {
+      disabled = false;
+      time_format = "%R";
+      style = "bg:#1d2230";
+      format = "[[  $time ](fg:#a0a9cb bg:#1d2230)]($style)";
+    };
+  };
+};
+
+  programs.zsh = {
+    enable = true;
+
+    initContent = ''
+      eval "$(starship init zsh)"
+    '';
+  };
 }

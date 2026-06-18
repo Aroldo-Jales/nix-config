@@ -20,7 +20,7 @@
   let
     system = "x86_64-linux";
 
-    vars = import ./home/vars.nix;
+    vars = import /etc/nixos/vars.nix;
       
 
     specialArgs = {
