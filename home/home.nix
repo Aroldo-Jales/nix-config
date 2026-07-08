@@ -13,7 +13,11 @@
   home.packages = with pkgs; [
     openssh
     starship
-  ];  
+  ];
+
+  home.sessionPath = [
+    "$HOME/.npm-global/bin"
+  ];
 
   systemd.user.services.ssh-agent = {
     Unit = {
@@ -40,8 +44,16 @@
   };
 
   home.sessionVariables = {
+    NPM_CONFIG_PREFIX = "$HOME/.npm-global";
     SSH_AUTH_SOCK = "$XDG_RUNTIME_DIR/ssh-agent.socket";
   };
+
+  home.activation.installOpenspec = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    export HOME="${config.home.homeDirectory}"
+    export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+    mkdir -p "$NPM_CONFIG_PREFIX/bin"
+    ${pkgs.nodejs_22}/bin/npm install -g @fission-ai/openspec@latest
+  '';
 
   programs.bash = {
     enable = true;

@@ -5,53 +5,77 @@ let
     sdk_8_0
     sdk_9_0
   ];
+
+  system = pkgs.stdenv.hostPlatform.system;
 in
 {
   nixpkgs.config.allowUnfree = true;
 
   environment.systemPackages = with pkgs; [
-    # Desktop
+    # Browsers
     firefox
     google-chrome
-    keepassxc
+    inputs.zen-browser.packages.${system}.twilight
+
+    # Office / produtividade
+    onlyoffice-desktopeditors
     thunderbird
-    libreoffice
     zotero
-    obs-studio
     joplin-desktop
-    flatpak
-    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.twilight
-    webtorrent_desktop
-    qbittorrent
+    typora
+    keepassxc
+
+    # Multimídia
     vlc
     haruna
-    virtualbox
-    weasis
+    obs-studio
 
-    # Dev
+    # Downloads / torrents
+    webtorrent_desktop
+    qbittorrent
+    yt-dlp
+
+    # Comunicação / compartilhamento
+    localsend
+    # rustdesk
+
+    # Virtualização / compatibilidade
+    virtualbox
+    flatpak
+    ocs-url
+
+    # Desenvolvimento - editores / IDEs
     vscode
     antigravity
     android-studio
-    dbeaver-bin
-    bruno
     sublime3
+
+    # Desenvolvimento - ferramentas gerais
     git
+    gcc
+    gnumake
+    pkg-config
+    openssl
+    perl
+    libsecret
+
+    # Desenvolvimento - linguagens / runtimes
     cargo
     python3
+    python3Packages.pip
+    python3Packages.virtualenv
     nodejs_22
     dotnetCombined
     dotnet-ef
-    python3Packages.pip
-    python3Packages.virtualenv
     flutter
-    libsecret
 
-    # Utils
-    gcc
+    # Desenvolvimento - APIs / banco de dados
+    dbeaver-bin
+    bruno
+
+    # Terminal / CLI
     curl
     wget
-    dcmtk
-    tailscale
     ripgrep
     fd
     fzf
@@ -60,21 +84,33 @@ in
     htop
     starship
     openssh
-    openssl
-    pkg-config
-    gnumake
-    perl
-    ocs-url
-    yt-dlp
-    qalculate-qt
-    localsend
 
+    # Rede / VPN
+    tailscale
+
+    # Ciência / documentos técnicos
+    texliveFull
+    qalculate-qt
+
+    # Medicina / DICOM
+    weasis
+    dcmtk
+
+    # Hardware / dispositivos
     usbutils
     pciutils
     bluez
     blueman
 
-    # ui
+    # Interface / KDE
     libsForQt5.qtstyleplugin-kvantum
+
+    # KDE / contas online
+    kdePackages.kaccounts-integration
+    kdePackages.kaccounts-providers
+    kdePackages.signond
+    kdePackages.signon-kwallet-extension
+    kdePackages.kio-gdrive
+    kdePackages.kdepim-addons
   ];
 }
