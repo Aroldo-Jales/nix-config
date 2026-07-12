@@ -1,5 +1,3 @@
-{ pkgs, ... }:
-
 {
   services.displayManager.sddm.enable = true;
   services.displayManager.sddm.wayland.enable = true;
@@ -13,10 +11,4 @@
     allowedTCPPorts = [ 53317 ];
     allowedUDPPorts = [ 53317 ];
   };
-
-  environment.systemPackages = with pkgs; [
-    kdePackages.kaccounts-integration
-    kdePackages.kaccounts-providers
-    kdePackages.kio-gdrive
-  ];
 }

@@ -7,7 +7,7 @@ set -euo pipefail
 # - Lets you enter the distrobox
 # - Lets you REMOVE only that profile's container + image + its named volumes (no global volume prune)
 
-REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 CONTAINERS_DIR="${REPO_ROOT}/containers"
@@ -94,7 +94,7 @@ build_image() {
   local tag="$1"
 
   # Build context must be the repo root so Dockerfile can COPY shared files like:
-  #   COPY containers/fix-ssh-runtime.sh /usr/local/bin/fix-ssh-runtime.sh
+  #   COPY scripts/containers/fix-ssh-runtime.sh /usr/local/bin/fix-ssh-runtime.sh
   # Using "$SELECTED_DIR" as context would block COPY of ../ files (context escape).
   local context_dir="$REPO_ROOT"
   local dockerfile_path="$SELECTED_DIR/Dockerfile"

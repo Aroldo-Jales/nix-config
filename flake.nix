@@ -19,12 +19,19 @@
   outputs = inputs @ { self, nixpkgs, home-manager, ... }:
   let
     system = "x86_64-linux";
+    repoRoot =
+      let
+        pwd = builtins.getEnv "PWD";
+      in
+      if pwd != "" && builtins.pathExists (/. + "${pwd}/flake.nix")
+      then pwd
+      else toString ./.;
 
-    vars = import /etc/nixos/vars.nix;
-      
+    vars = import (/. + "${repoRoot}/home/vars.nix");
+
 
     specialArgs = {
-      inherit inputs vars;
+      inherit inputs repoRoot vars;
     };
   in {
     nixosConfigurations.laptop = nixpkgs.lib.nixosSystem {

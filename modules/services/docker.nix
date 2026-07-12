@@ -1,12 +1,10 @@
-{ pkgs, vars, ... }:
+{ pkgs, ... }:
 
 {
   virtualisation.docker = {
     enable = true;
     autoPrune.enable = true;
   };
-
-  users.users.${vars.username}.extraGroups = [ "docker" ];
 
   environment.systemPackages = with pkgs; [
     docker

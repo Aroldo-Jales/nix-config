@@ -1,17 +1,17 @@
 # nix-config — NixOS + KDE Plasma 6 (Flake) + Home Manager
 
-This repository contains a complete **NixOS** configuration based on flakes, with Home Manager integration, KDE Plasma 6 desktop, NetworkManager, PipeWire, Podman (Docker compatibility), and periodic KeePass database sync via rclone (Google Drive).
+This repository contains a complete **NixOS** configuration based on flakes, with Home Manager integration, KDE Plasma 6 desktop, NetworkManager, PipeWire, Docker, helper scripts for containers, and periodic KeePass database sync via rclone (Google Drive).
 
 ---
 
 ## Overview
 
-- Modular structure (`modules/`) for better organization
+- Modular structure with separation between host, home, packages, and scripts
 - Host defined: `laptop` (`hosts/laptop/`)
 - User managed via `home/vars.nix`
 - Desktop: SDDM + Plasma 6 (Wayland enabled)
 - Development tools: VSCode, Git, Python, etc.
-- Containers: Podman with Docker compatibility
+- Containers: Docker in NixOS and helper scripts in `scripts/`
 - KeePass sync: systemd user service/timer with rclone
 
 ---
@@ -29,16 +29,16 @@ nix-config
 │       └── configuration.nix
 ├── modules
 │   ├── boot
-│   ├── cloud
 │   ├── desktop
 │   ├── networking
-│   ├── packages.nix
+│   ├── packages
 │   ├── services
 │   ├── system
 │   └── users
+├── scripts
 ├── flake.lock
 ├── flake.nix
-└── nix-build-laptop.sh
+└── .gitignore
 ```
 
 ---
@@ -90,13 +90,13 @@ nano home/vars.nix
 Before running `nixos-rebuild` directly, use the provided helper script:
 
 ```bash
-./nix-build-laptop.sh
+./scripts/nix-build-laptop.sh
 ```
 
 This script will:
 
 - Check if `hardware-configuration.nix` exists
-- Copy it from `/etc/nixos` if missing
+- Generate `hardware-configuration.nix` inside the repo if missing
 - Provide a safe menu for rebuilding
 - Prevent evaluation errors
 
@@ -109,12 +109,12 @@ This is the recommended entry point for new systems.
 ### Using the Interactive Build Script (Recommended)
 
 ```bash
-./nix-build-laptop.sh
+./scripts/nix-build-laptop.sh
 ```
 
 Available options:
 
-- Check/copy hardware configuration
+- Check/generate hardware configuration
 - Build system
 - Switch configuration
 - Update flakes
@@ -127,14 +127,14 @@ Available options:
 If `hardware-configuration.nix` is already present:
 
 ```bash
-sudo nixos-rebuild switch --flake .#laptop
+sudo nixos-rebuild switch --flake .#laptop --impure
 ```
 
 Update inputs and rebuild:
 
 ```bash
 nix flake update
-sudo nixos-rebuild switch --flake .#laptop
+sudo nixos-rebuild switch --flake .#laptop --impure
 ```
 
 ---
@@ -189,7 +189,7 @@ git clone <repo>
 cd nix-config
 cp home/vars.example.nix home/vars.nix
 nano home/vars.nix
-./nix-build-laptop.sh
+./scripts/nix-build-laptop.sh
 ```
 
 ---

@@ -1,11 +1,14 @@
 { pkgs, ... }:
 
 {
-  environment.systemPackages = with pkgs; [ rclone ];
+  home.packages = with pkgs; [ rclone ];
 
   systemd.user.services.keepass-sync = {
-    description = "KeePassXC Sync";
-    serviceConfig = {
+    Unit = {
+      Description = "KeePassXC Sync";
+    };
+
+    Service = {
       Type = "oneshot";
       ExecStart = ''
         ${pkgs.rclone}/bin/rclone sync \
@@ -16,10 +19,18 @@
   };
 
   systemd.user.timers.keepass-sync = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
+    Unit = {
+      Description = "Periodic KeePassXC Sync";
+    };
+
+    Timer = {
       OnBootSec = "2min";
       OnUnitActiveSec = "10min";
+      Unit = "keepass-sync.service";
+    };
+
+    Install = {
+      WantedBy = [ "timers.target" ];
     };
   };
 }

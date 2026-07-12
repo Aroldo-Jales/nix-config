@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Repository root
-REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 # Target host
@@ -13,7 +13,7 @@ TARGET_DIR="hosts/${HOST}"
 TARGET_HW="${TARGET_DIR}/hardware-configuration.nix"
 
 # Vars init script
-INIT_VARS_SCRIPT="${REPO_ROOT}/initiate-vars.sh"
+INIT_VARS_SCRIPT="${REPO_ROOT}/scripts/initiate-vars.sh"
 
 
 # -------------------------
@@ -22,11 +22,11 @@ INIT_VARS_SCRIPT="${REPO_ROOT}/initiate-vars.sh"
 
 ensure_vars() {
   if [[ ! -x "$INIT_VARS_SCRIPT" ]]; then
-    echo "ERROR: initiate-vars.sh not found or not executable:"
+    echo "ERROR: scripts/initiate-vars.sh not found or not executable:"
     echo "  $INIT_VARS_SCRIPT"
     echo
     echo "Run:"
-    echo "  chmod +x initiate-vars.sh"
+    echo "  chmod +x scripts/initiate-vars.sh"
     exit 1
   fi
 

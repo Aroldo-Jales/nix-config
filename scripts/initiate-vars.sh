@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VARS_ETC="/etc/nixos/vars.nix"
+REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+VARS_FILE="${REPO_ROOT}/home/vars.nix"
 
 prompt_default() {
   local prompt="$1"
@@ -24,16 +25,16 @@ sanitize_nix_string() {
 }
 
 ensure_vars_nix() {
-  if [[ -f "$VARS_ETC" ]]; then
-    echo "OK: ${VARS_ETC} already exists (no action)."
+  if [[ -f "$VARS_FILE" ]]; then
+    echo "OK: ${VARS_FILE} already exists (no action)."
     return 0
   fi
 
-  echo "WARN: ${VARS_ETC} not found."
-  echo "==> Creating ${VARS_ETC} (personal/private values)."
+  echo "WARN: ${VARS_FILE} not found."
+  echo "==> Creating ${VARS_FILE} (personal/private values)."
 
   local default_username="${SUDO_USER:-${USER:-}}"
-  local username hostname fullName email nixConfigPath podmanSocket
+  local username hostname homeDirectory fullName email nixConfigPath podmanSocket
 
   username="$(prompt_default "username" "$default_username")"
   if [[ -z "$username" ]]; then
@@ -42,15 +43,17 @@ ensure_vars_nix() {
   fi
 
   hostname="$(prompt_default "hostname" "${username}-laptop")"
+  homeDirectory="$(prompt_default "homeDirectory" "/home/${username}")"
   fullName="$(prompt_default "fullName" "")"
   email="$(prompt_default "email" "")"
 
-  nixConfigPath="$(prompt_default "nixConfigPath" "/home/${username}/nix-config")"
+  nixConfigPath="$(prompt_default "nixConfigPath" "${REPO_ROOT}")"
   podmanSocket="$(prompt_default "podmanSocket" "unix://\$XDG_RUNTIME_DIR/podman/podman.sock")"
 
   # sanitize
   username="$(sanitize_nix_string "$username")"
   hostname="$(sanitize_nix_string "$hostname")"
+  homeDirectory="$(sanitize_nix_string "$homeDirectory")"
   fullName="$(sanitize_nix_string "$fullName")"
   email="$(sanitize_nix_string "$email")"
   nixConfigPath="$(sanitize_nix_string "$nixConfigPath")"
@@ -59,12 +62,13 @@ ensure_vars_nix() {
   local tmp
   tmp="$(mktemp)"
 
-  cat >"$tmp" <<EOF
+cat >"$tmp" <<EOF
 let
   username = "${username}";
   hostname = "${hostname}";
+  homeDirectory = "${homeDirectory}";
 in {
-  inherit username;
+  inherit username hostname homeDirectory;
 
   fullName = "${fullName}";
   email = "${email}";
@@ -74,19 +78,20 @@ in {
 }
 EOF
 
-  echo "==> Saving ${VARS_ETC} (root-owned, 0644)..."
-  sudo install -m 0644 -o root -g root "$tmp" "$VARS_ETC"
+  mkdir -p "$(dirname "$VARS_FILE")"
+  echo "==> Saving ${VARS_FILE}..."
+  install -m 0600 "$tmp" "$VARS_FILE"
   rm -f "$tmp"
 
   if command -v nix-instantiate >/dev/null 2>&1; then
-    if ! sudo nix-instantiate --parse "$VARS_ETC" >/dev/null; then
-      echo "ERROR: Nix parse failed for ${VARS_ETC}."
-      echo "Edit manually: sudoedit ${VARS_ETC}"
+    if ! nix-instantiate --parse "$VARS_FILE" >/dev/null; then
+      echo "ERROR: Nix parse failed for ${VARS_FILE}."
+      echo "Edit manually: ${VARS_FILE}"
       return 1
     fi
   fi
 
-  echo "OK: created ${VARS_ETC}."
+  echo "OK: created ${VARS_FILE}."
 }
 
 ensure_vars_nix
