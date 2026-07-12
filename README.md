@@ -41,6 +41,40 @@ nix-config
 └── .gitignore
 ```
 
+## Configuration Diagram
+
+```mermaid
+flowchart TD
+    A[flake.nix] --> B[home/vars.nix]
+    A --> C[hosts/laptop/configuration.nix]
+    A --> D[Home Manager]
+
+    C --> C1[hardware-configuration.nix]
+    C --> C2[boot, system, networking]
+    C --> C3[desktop, services, users]
+    C --> C4[modules/packages.nix]
+
+    C4 --> P[base, desktop, dev, media, kde]
+
+    D --> H[home/home.nix]
+    H --> H1[core]
+    H --> H2[programs]
+    H --> H3[services]
+    H --> H4[github-ssh]
+
+    S[scripts/] --> S1[build, init, containers, firefly]
+
+    X[containers/] --> X1[Dockerfiles and compose files]
+```
+
+This diagram shows the main flow:
+
+- `flake.nix` loads local variables, the NixOS host, and the Home Manager user config.
+- `hosts/laptop/configuration.nix` assembles the machine-specific NixOS modules.
+- `modules/packages.nix` works as an aggregator for package groups split by domain.
+- `home/home.nix` works as an aggregator for user modules, programs, and user services.
+- `scripts/` contains helper tooling, while `containers/` keeps container artifacts only.
+
 ---
 
 ## Prerequisites
